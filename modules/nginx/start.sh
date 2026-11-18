@@ -19,7 +19,16 @@ PHP_FPM_CONF="${PHP_FPM_CONF:-/home/container/php/php-fpm.conf}"
 NGINX_CONF="${NGINX_CONF:-/home/container/nginx/nginx.conf}"
 NGINX_PREFIX="${NGINX_PREFIX:-/home/container}"
 
-mkdir -p "${NGINX_PREFIX}/tmp" "${NGINX_PREFIX}/logs" "${NGINX_PREFIX}/php/sessions" "${NGINX_PREFIX}/tmp/fastcgi_cache"
+mkdir -p \
+  "${NGINX_PREFIX}/tmp" \
+  "${NGINX_PREFIX}/tmp/client_body" \
+  "${NGINX_PREFIX}/tmp/proxy" \
+  "${NGINX_PREFIX}/tmp/fastcgi" \
+  "${NGINX_PREFIX}/tmp/uwsgi" \
+  "${NGINX_PREFIX}/tmp/scgi" \
+  "${NGINX_PREFIX}/tmp/fastcgi_cache" \
+  "${NGINX_PREFIX}/logs" \
+  "${NGINX_PREFIX}/php/sessions"
 
 if [[ "${TRUST_PROXY:-1}" =~ ^(true|1)$ ]]; then
   if ! grep -q "snippets/proxy-headers.conf" "${NGINX_PREFIX}/nginx/conf.d/default.conf" 2>/dev/null; then
