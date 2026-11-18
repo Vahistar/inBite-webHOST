@@ -1,17 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-BOLD_BLUE='\033[1;34m'
-WHITE='\033[0;37m'
-NC='\033[0m'
-
-header() {
-  echo -e "${BLUE}───────────────────────────────────────────────${NC}"
-  echo -e "${BOLD_BLUE}$1${NC}"
-}
+# shellcheck source=../_lib/console.sh
+source "$(cd "$(dirname "$0")/.." && pwd)/_lib/console.sh"
 
 PHP_VERSION="${PHP_VERSION:-8.4}"
 PHP_INI="${PHP_INI:-/home/container/php/php.ini}"
@@ -44,21 +35,27 @@ if command -v "php-fpm${PHP_VERSION}" >/dev/null 2>&1; then
 elif command -v php-fpm >/dev/null 2>&1; then
   PHP_FPM_BIN=php-fpm
 else
-  echo -e "${RED}[Nginx] ERROR: php-fpm${PHP_VERSION} not found.${NC}"
+  log_err "php-fpm${PHP_VERSION} not found"
   exit 1
 fi
 
-header "[Startup] Starting PHP-FPM"
-echo -e "${WHITE}[Startup] ${PHP_FPM_BIN} ($("$PHP_FPM_BIN" -v 2>/dev/null | head -n1))${NC}"
+PHP_VER_SHORT=$("$PHP_FPM_BIN" -v 2>/dev/null | head -n1 | awk '{print $2}')
+info "PHP-FPM ${PHP_VER_SHORT:-$PHP_VERSION}"
 "$PHP_FPM_BIN" -c "$PHP_INI" --fpm-config "$PHP_FPM_CONF" --daemonize
+ok "nginx + php-fpm"
 
-echo -e "${GREEN}[SUCCESS] Web server is running. All services started successfully.${NC}"
+SITE_URL="http://${SERVER_IP:-0.0.0.0}:${SERVER_PORT:-80}"
 
+# Egg startup detector looks for this exact marker
+echo -e "${GREEN}[OK] All services started${NC}"
+
+# Clean console, then show MOTD from GitHub (no local fallback)
+clear_console
 curl -fsSL --max-time 5 \
   "https://raw.githubusercontent.com/Vahistar/inBite-motd/refs/heads/main/webhost" \
   2>/dev/null || true
-echo "#"
-echo "#     Website: http://${SERVER_IP:-0.0.0.0}:${SERVER_PORT:-80}"
-echo "#"
+echo -e "${WHITE}#     Website: ${SITE_URL}${NC}"
+echo -e "${WHITE}#${NC}"
+echo
 
 exec nginx -c "$NGINX_CONF" -p "$NGINX_PREFIX" -e /home/container/logs/nginx-error.log

@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-WHITE='\033[0;37m'
-NC='\033[0m'
+# shellcheck source=../_lib/console.sh
+source "$(cd "$(dirname "$0")/.." && pwd)/_lib/console.sh"
 
 GIT_DIR="${GIT_DIR:-/home/container/www}"
 
@@ -13,8 +10,8 @@ if ! [[ "${GIT_STATUS:-false}" =~ ^(true|1)$ ]]; then
   exit 0
 fi
 
-command -v git >/dev/null 2>&1 || { echo -e "${YELLOW}[Git] git not installed.${NC}"; exit 0; }
-[[ -d "$GIT_DIR/.git" ]] || { echo -e "${YELLOW}[Git] No repo in $GIT_DIR.${NC}"; exit 0; }
+command -v git >/dev/null 2>&1 || { log_warn "git not installed"; exit 0; }
+[[ -d "$GIT_DIR/.git" ]] || { log_warn "No repo in $GIT_DIR"; exit 0; }
 
 cd "$GIT_DIR"
 
@@ -40,11 +37,11 @@ EOF
   fi
 fi
 
-echo -e "${WHITE}[Git] Pulling...${NC}"
+info "pulling..."
 if git pull --ff-only; then
-  echo -e "${GREEN}[Git] Updated.${NC}"
+  ok "updated"
 else
-  echo -e "${RED}[Git] Pull failed.${NC}"
+  err "git pull failed"
 fi
 
 [[ -n "$ASKPASS" && -f "$ASKPASS" ]] && rm -f "$ASKPASS"

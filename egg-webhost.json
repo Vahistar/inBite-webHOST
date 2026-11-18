@@ -5,9 +5,9 @@
                  "update_url":  null
              },
     "exported_at":  "2026-11-18T00:00:00+01:00",
-    "name":  "BiteHost WebHost",
+    "name":  "webHOST for BiteHost™",
     "author":  "rogowski.b@bitehost.me",
-    "description":  "BiteHost WebHost — Nginx + PHP-FPM. Panel proxy, Cloudflare Tunnel, Certbot, WordPress, NamelessMC. Images: ghcr.io/vahistar/webhost.",
+    "description":  "webHOST for BiteHost™ - Nginx + PHP-FPM for BiteHost (inBite Group). Panel proxy, Cloudflare Tunnel, Certbot, WordPress, NamelessMC. Images: ghcr.io/vahistar/webhost.",
     "features":  null,
     "docker_images":  {
                           "PHP 8.4":  "ghcr.io/vahistar/webhost:8.4",
@@ -20,7 +20,7 @@
     "startup":  "./start-modules.sh",
     "config":  {
                    "logs":  "{\"custom\":false,\"location\":\"logs/nginx-error.log\"}",
-                   "startup":  "{\"done\":\"[SUCCESS] Web server is running. All services started successfully.\",\"userInteraction\":[]}",
+                   "startup":  "{\"done\":\"[OK] All services started\",\"userInteraction\":[]}",
                    "stop":  "^C",
                    "files":  "{\"nginx/conf.d/default.conf\":{\"parser\":\"file\",\"find\":{\"    listen \":\"    listen {{server.build.default.port}};\"}}}"
                },

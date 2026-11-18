@@ -1,6 +1,6 @@
-# BiteHost WebHost
+# inBite webHOST
 
-Nginx + PHP-FPM egg for Pterodactyl / Pelican.
+Nginx + PHP-FPM egg for Pterodactyl / Pelican — part of the BiteHost hosting stack by inBite Group.
 
 ## Setup
 
@@ -37,4 +37,4 @@ php -i | grep session.upload_progress.enabled
 
 ## License
 
-MIT
+MIT © inBite Group

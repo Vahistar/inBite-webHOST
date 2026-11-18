@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
+# shellcheck source=../_lib/console.sh
+source "$(cd "$(dirname "$0")/.." && pwd)/_lib/console.sh"
 
 if ! [[ "${CERTBOT_STATUS:-0}" =~ ^(true|1)$ ]]; then
   exit 0
@@ -16,11 +14,11 @@ WEBROOT="${CERTBOT_WEBROOT_PATH:-/home/container/www}"
 CONFIG_DIR="${CERTBOT_CONFIG_DIR:-/home/container/certbot}"
 
 if [[ -z "$DOMAIN" || -z "$EMAIL" ]]; then
-  echo -e "${RED}[Certbot] CERTBOT_DOMAIN and CERTBOT_EMAIL required.${NC}"
+  log_err "CERTBOT_DOMAIN and CERTBOT_EMAIL required"
   exit 1
 fi
 
-command -v certbot >/dev/null 2>&1 || { echo -e "${RED}[Certbot] missing.${NC}"; exit 1; }
+command -v certbot >/dev/null 2>&1 || { log_err "certbot missing"; exit 1; }
 
 mkdir -p "$CONFIG_DIR" "$WEBROOT"
 
@@ -38,12 +36,12 @@ if [[ -n "${CERTBOT_DNS_CLOUDFLARE_TOKEN:-}" ]]; then
       --agree-tos --non-interactive -m "$EMAIL" \
       --dns-cloudflare --dns-cloudflare-credentials "$CF_INI" \
       -d "$DOMAIN" "${STAGING_ARGS[@]}" "${FORCE_ARGS[@]}"; then
-    echo -e "${YELLOW}[Certbot] DNS-01 failed, trying webroot...${NC}"
+    log_warn "DNS-01 failed, trying webroot..."
     certbot certonly \
       --config-dir "$CONFIG_DIR" --work-dir "$CONFIG_DIR/work" --logs-dir /home/container/logs \
       --agree-tos --non-interactive -m "$EMAIL" \
       --webroot -w "$WEBROOT" -d "$DOMAIN" "${STAGING_ARGS[@]}" "${FORCE_ARGS[@]}" \
-      || { rm -f "$CF_INI"; echo -e "${RED}[Certbot] Failed.${NC}"; exit 1; }
+      || { rm -f "$CF_INI"; log_err "Certbot failed"; exit 1; }
   fi
   rm -f "$CF_INI"
 else
@@ -51,8 +49,8 @@ else
     --config-dir "$CONFIG_DIR" --work-dir "$CONFIG_DIR/work" --logs-dir /home/container/logs \
     --agree-tos --non-interactive -m "$EMAIL" \
     --webroot -w "$WEBROOT" -d "$DOMAIN" "${STAGING_ARGS[@]}" "${FORCE_ARGS[@]}" \
-    || { echo -e "${RED}[Certbot] Failed.${NC}"; exit 1; }
+    || { log_err "Certbot failed"; exit 1; }
 fi
 
-echo -e "${GREEN}[Certbot] Certs in ${CONFIG_DIR}/live/${DOMAIN}/${NC}"
-echo -e "${YELLOW}[Certbot] Enable nginx/conf.d/default-ssl.conf.example if needed.${NC}"
+ok "certs in ${CONFIG_DIR}/live/${DOMAIN}/"
+warn "enable nginx/conf.d/default-ssl.conf.example if needed"
