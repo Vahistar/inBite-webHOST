@@ -14,7 +14,7 @@ $pageUrl = $scheme . '://' . $host . ($_SERVER['REQUEST_URI'] ?? (($basePath ===
 $pageTitle = 'Welcome to BiteHost™';
 $pageDescription = 'Your BiteHost WebHost server is ready. Claim a subdomain, connect Cloudflare Tunnel, and start building with PHP, WordPress, or NamelessMC.';
 $pageKeywords = 'BiteHost, WebHost, Pterodactyl, web hosting, PHP hosting, Cloudflare Tunnel, WordPress, NamelessMC, subdomain, inBite';
-$pageAuthor = 'inBite Group';
+$pageAuthor = 'Bartosz "Vahistar" Rogowski';
 $ogImage = $siteUrl . '/socials.png';
 
 $e = static function (string $value): string {
@@ -887,7 +887,7 @@ $e = static function (string $value): string {
                     BiteHost™
                 </a>
                 <a href="https://bitehost.me" target="_blank" rel="noopener noreferrer" class="header-link">
-                    Visit bitehost.me
+                    bitehost.me
                     <i class="fas fa-arrow-up-right-from-square"></i>
                 </a>
             </div>
@@ -934,8 +934,8 @@ $e = static function (string $value): string {
                         <i class="fab fa-discord"></i>
                     </div>
                     <h3>Welcome to BiteHost</h3>
-                    <p>Thank you for choosing our hosting services. Whether you're building a personal blog, an online store, or a web application, we've got you covered.</p>
-                    <p style="margin-top: 0.75rem;">Join our community for support, updates, and to connect with other developers.</p>
+                    <p>We're happy to have you here! Whether you're launching your first website, running a growing project, or building something entirely your own, we're here to keep things running smoothly.</p>
+                    <p style="margin-top: 0.75rem;">Need a helping paw? Join our Discord community for support, updates, and a chance to meet fellow creators.</p>
                     <a href="https://discord.bitehost.me" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; justify-content: center;">
                         <i class="fab fa-discord"></i>
                         Join our Discord
@@ -990,13 +990,13 @@ $e = static function (string $value): string {
                     <p>You can claim a subdomain now. Proxy and SSL are still work in progress.</p>
                     <ul class="step-list">
                         <li>
-                            <span>Go to <strong>More → Subdomains</strong> and create a subdomain.</span>
+                            <span>Go to <strong>Subdomains</strong> and create a subdomain.</span>
                         </li>
                         <li class="is-wip">
-                            <span><strong>Proxy</strong> — work in progress (needed for URLs without a port).</span>
+                            <span><strong>Proxy</strong> - work in progress.</span>
                         </li>
                         <li class="is-wip">
-                            <span><strong>SSL / Let's Encrypt</strong> — work in progress.</span>
+                            <span><strong>SSL / Let's Encrypt</strong> - work in progress.</span>
                         </li>
                         <li>
                             <span>Until then, open the site with your allocation port (e.g. <code>http://name.domain:PORT</code>).</span>
@@ -1019,7 +1019,7 @@ $e = static function (string $value): string {
                             <span>Paste the token into <strong>Cloudflare Tunnel Token</strong>.</span>
                         </li>
                         <li>
-                            <span>In Cloudflare, route the hostname to <code id="tunnel-target"><?php echo $tunnelTarget; ?></code> (copy this).</span>
+                            <span>In Cloudflare, route the hostname to <code id="tunnel-target"><?php echo $tunnelTarget; ?></code>.</span>
                         </li>
                     </ul>
                 </div>
@@ -1027,7 +1027,7 @@ $e = static function (string $value): string {
                 <div class="step is-wip" aria-disabled="true">
                     <div class="step-num">3</div>
                     <h3>Certbot</h3>
-                    <p>Work in progress — TLS certificates inside this server are not ready yet.</p>
+                    <p>TLS certificates inside this server are not ready yet.</p>
                     <ul class="step-list">
                         <li>
                             <span>Do not enable <strong>Certbot</strong> in Startup for now.</span>
@@ -1052,7 +1052,7 @@ $e = static function (string $value): string {
                     </div>
                     <div>
                         <h4>Automatic installers</h4>
-                        <p>In Startup you can set <strong>WordPress</strong> or <strong>NamelessMC</strong> to Enable before install/reinstall — only one at a time.</p>
+                        <p>In Startup you can set <strong>WordPress</strong> or <strong>NamelessMC</strong> to Enable before install/reinstall (only one at a time).</p>
                     </div>
                 </div>
             </div>
@@ -1089,11 +1089,11 @@ $e = static function (string $value): string {
     <section class="container">
         <div class="cta-section">
             <div class="cta-copy">
-                <h2>Need help? Hop into Discord</h2>
-                <p>Chat with the BiteHost team, get setup tips, and hang out with other builders — same vibe as a real Discord server lobby.</p>
+                <h2>A little help goes a long way.</h2>
+                <p>Whether you need a paw with setup or just someone to share ideas with, our community is always happy to welcome another face.</p>
                 <a href="https://discord.bitehost.me" target="_blank" rel="noopener noreferrer" class="btn btn-discord">
                     <i class="fab fa-discord"></i>
-                    Join the server
+                    Join our Discord    
                 </a>
             </div>
             <div class="cta-mascot" aria-hidden="true">
@@ -1107,16 +1107,16 @@ $e = static function (string $value): string {
         <div class="container">
             <div class="footer-inner">
                 <div class="footer-copy">
-                    &copy; 2026 BiteHost™ · by inBite Group
+                    &copy; 2026 BiteHost™ by inBite Group
                 </div>
                 <div class="footer-links">
-                    <a href="#">
+                    <a href="https://www.youtube.com/@vahistar" target="_blank">
                         <i class="fab fa-youtube"></i>
                     </a>
                     <a href="https://discord.bitehost.me" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-discord"></i>
                     </a>
-                    <a href="#">
+                    <a href="https://github.com/Vahistar" target="_blank">
                         <i class="fab fa-github"></i>
                     </a>
                 </div>
