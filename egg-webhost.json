@@ -1,0 +1,246 @@
+{
+    "_comment":  "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta":  {
+                 "version":  "PTDL_v2",
+                 "update_url":  null
+             },
+    "exported_at":  "2026-11-18T00:00:00+01:00",
+    "name":  "BiteHost WebHost",
+    "author":  "rogowski.b@bitehost.me",
+    "description":  "BiteHost WebHost — Nginx + PHP-FPM. Panel proxy, Cloudflare Tunnel, Certbot, WordPress, NamelessMC. Images: ghcr.io/vahistar/webhost.",
+    "features":  null,
+    "docker_images":  {
+                          "PHP 8.4":  "ghcr.io/vahistar/webhost:8.4",
+                          "PHP 8.3":  "ghcr.io/vahistar/webhost:8.3",
+                          "PHP 8.2":  "ghcr.io/vahistar/webhost:8.2"
+                      },
+    "file_denylist":  [
+
+                      ],
+    "startup":  "./start-modules.sh",
+    "config":  {
+                   "logs":  "{\"custom\":false,\"location\":\"logs/nginx-error.log\"}",
+                   "startup":  "{\"done\":\"[SUCCESS] Web server is running. All services started successfully.\",\"userInteraction\":[]}",
+                   "stop":  "^C",
+                   "files":  "{\"nginx/conf.d/default.conf\":{\"parser\":\"file\",\"find\":{\"    listen \":\"    listen {{server.build.default.port}};\"}}}"
+               },
+    "scripts":  {
+                    "installation":  {
+                                         "script":  "#!/bin/bash\nset -euo pipefail\n\ncd /mnt/server || exit 1\n\nexport DEBIAN_FRONTEND=noninteractive\napt-get update -qq \u003e/dev/null 2\u003e\u00261\napt-get install -y -qq git curl ca-certificates unzip xz-utils wget \u003e/dev/null 2\u003e\u00261 \\\n  || { echo \"[ERROR] Failed to install packages\"; exit 1; }\n\nREPO_URL=\"${EGG_REPO_URL:-https://github.com/Vahistar/BiteHost-WebHost}\"\nBRANCH_REF=\"${EGG_REPO_BRANCH:-main}\"\n\necho \"[SETUP] Cloning ${REPO_URL} (${BRANCH_REF})...\"\nrm -rf /mnt/server/gtemp\ngit clone --depth 1 --branch \"${BRANCH_REF}\" \"${REPO_URL}\" /mnt/server/gtemp \\\n  || { echo \"[ERROR] Failed to clone egg repository\"; exit 1; }\n\ncp -a /mnt/server/gtemp/nginx /mnt/server/\ncp -a /mnt/server/gtemp/php /mnt/server/\ncp -a /mnt/server/gtemp/modules /mnt/server/\ncp -a /mnt/server/gtemp/www /mnt/server/\ncp /mnt/server/gtemp/start-modules.sh /mnt/server/\ncp /mnt/server/gtemp/LICENSE /mnt/server/ 2\u003e/dev/null || true\nchmod +x /mnt/server/start-modules.sh\nfind /mnt/server/modules -type f -name \"*.sh\" -exec chmod +x {} \\;\nrm -rf /mnt/server/gtemp\n\nmkdir -p /mnt/server/tmp /mnt/server/logs /mnt/server/php/sessions /mnt/server/tmp/fastcgi_cache\n\nis_true() { [[ \"${1:-}\" == \"1\" || \"${1:-}\" == \"true\" || \"${1:-}\" == \"TRUE\" ]]; }\n\nWP=0; NL=0\nis_true \"${WORDPRESS:-0}\" \u0026\u0026 WP=1\nis_true \"${NAMELESSMC:-0}\" \u0026\u0026 NL=1\n\nif [[ \"$WP\" -eq 1 \u0026\u0026 \"$NL\" -eq 1 ]]; then\n  echo \"[ERROR] Enable only one of WORDPRESS or NAMELESSMC, not both.\"\n  exit 1\nfi\n\nif [[ \"$WP\" -eq 1 ]]; then\n  echo \"[SETUP] Installing WordPress...\"\n  rm -rf /mnt/server/www/*\n  cd /mnt/server/www\n  curl -fL -o latest.tar.gz https://wordpress.org/latest.tar.gz\n  tar -xzf latest.tar.gz\n  mv wordpress/* .\n  rm -rf wordpress latest.tar.gz\n  cp /mnt/server/nginx/conf.d/wordpress.conf.example /mnt/server/nginx/conf.d/default.conf\n  if [[ ! -f /mnt/server/crontab ]]; then\n    cat \u003e /mnt/server/crontab \u003c\u003c\u0027EOF\u0027\n*/5 * * * * cd /home/container/www \u0026\u0026 php -f wp-cron.php \u003e/dev/null 2\u003e\u00261\nEOF\n  fi\n  echo \"[DONE] WordPress installed. Visit http://ip:port/wp-admin\"\n  exit 0\nfi\n\nif [[ \"$NL\" -eq 1 ]]; then\n  echo \"[SETUP] Installing NamelessMC...\"\n  rm -rf /mnt/server/www/*\n  cd /mnt/server/www\n  curl -fL \"https://github.com/NamelessMC/Nameless/releases/latest/download/nameless-deps-dist.tar.xz\" \\\n    | tar -xJ -C /mnt/server/www\n  cp /mnt/server/nginx/conf.d/namelessmc.conf.example /mnt/server/nginx/conf.d/default.conf\n  echo \"[DONE] NamelessMC installed.\"\n  exit 0\nfi\n\nif is_true \"${USER_UPLOAD:-0}\"; then\n  echo \"[SETUP] USER_UPLOAD enabled.\"\n  exit 0\nfi\n\nGIT_ADDRESS=\"${GIT_ADDRESS:-}\"\nif [[ -z \"$GIT_ADDRESS\" ]]; then\n  echo \"[SETUP] Default landing page ready.\"\n  exit 0\nfi\n\nif [[ \"${GIT_ADDRESS}\" != *.git ]]; then\n  GIT_ADDRESS=\"${GIT_ADDRESS}.git\"\nfi\n\nASKPASS=\"\"\nif [[ -n \"${USERNAME:-}\" \u0026\u0026 -n \"${ACCESS_TOKEN:-}\" ]]; then\n  ASKPASS=$(mktemp)\n  cat \u003e \"$ASKPASS\" \u003c\u003c\u0027EOF\u0027\n#!/bin/bash\ncase \"$1\" in\n  *Username*) echo \"$GIT_ASKPASS_USER\" ;;\n  *Password*) echo \"$GIT_ASKPASS_PASS\" ;;\nesac\nEOF\n  chmod 700 \"$ASKPASS\"\n  export GIT_ASKPASS_USER=\"$USERNAME\"\n  export GIT_ASKPASS_PASS=\"$ACCESS_TOKEN\"\n  export GIT_ASKPASS=\"$ASKPASS\"\n  export GIT_TERMINAL_PROMPT=0\nfi\n\nrm -rf /mnt/server/www/*\nmkdir -p /mnt/server/www\ncd /mnt/server/www\n\nBRANCH=\"${GIT_BRANCH:-${BRANCH:-}}\"\necho \"[Git] Cloning ${GIT_ADDRESS}...\"\nif [[ -n \"$BRANCH\" ]]; then\n  git clone --depth 1 --single-branch --branch \"$BRANCH\" \"$GIT_ADDRESS\" .\nelse\n  git clone --depth 1 \"$GIT_ADDRESS\" .\nfi\n\nORIGIN=$(git config --get remote.origin.url || true)\nif [[ -n \"$ORIGIN\" ]]; then\n  CLEAN=$(echo \"$ORIGIN\" | sed -E \u0027s|https://[^@]+@|https://|\u0027)\n  git remote set-url origin \"$CLEAN\"\nfi\n\n[[ -n \"$ASKPASS\" \u0026\u0026 -f \"$ASKPASS\" ]] \u0026\u0026 rm -f \"$ASKPASS\"\nunset GIT_ASKPASS GIT_ASKPASS_USER GIT_ASKPASS_PASS || true\n\necho \"[DONE] Installation complete.\"\n",
+                                         "entrypoint":  "bash",
+                                         "container":  "debian:bookworm-slim"
+                                     }
+                },
+    "variables":  [
+                      {
+                          "default_value":  "8.4",
+                          "user_viewable":  true,
+                          "name":  "PHP Version",
+                          "env_variable":  "PHP_VERSION",
+                          "description":  "Must match Docker image (8.2, 8.3, 8.4).",
+                          "user_editable":  true,
+                          "rules":  "required|string|in:8.2,8.3,8.4",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "1",
+                          "user_viewable":  true,
+                          "name":  "Trust Proxy",
+                          "env_variable":  "TRUST_PROXY",
+                          "description":  "Trust X-Forwarded-* from panel proxy. 1=on 0=off",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "WordPress",
+                          "env_variable":  "WORDPRESS",
+                          "description":  "Install WordPress on install. Mutually exclusive with NamelessMC.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "NamelessMC",
+                          "env_variable":  "NAMELESSMC",
+                          "description":  "Install NamelessMC on install. Mutually exclusive with WordPress.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "User Uploaded Files",
+                          "env_variable":  "USER_UPLOAD",
+                          "description":  "Skip Git/WP/Nameless install logic.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Git Repo Address",
+                          "env_variable":  "GIT_ADDRESS",
+                          "description":  "Optional repo to clone into www.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Git Branch",
+                          "env_variable":  "GIT_BRANCH",
+                          "description":  "Branch to clone. Empty = default.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "Git Auto Update",
+                          "env_variable":  "GIT_STATUS",
+                          "description":  "git pull on start.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Git Username",
+                          "env_variable":  "USERNAME",
+                          "description":  "Git HTTPS username.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Git Access Token",
+                          "env_variable":  "ACCESS_TOKEN",
+                          "description":  "Git personal access token.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "Composer",
+                          "env_variable":  "COMPOSER_STATUS",
+                          "description":  "Run composer on start.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Composer Packages",
+                          "env_variable":  "COMPOSER_MODULES",
+                          "description":  "Extra composer packages (space-separated).",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "Cloudflare Tunnel",
+                          "env_variable":  "CLOUDFLARED_STATUS",
+                          "description":  "Start cloudflared tunnel.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Cloudflare Tunnel Token",
+                          "env_variable":  "CLOUDFLARED_TOKEN",
+                          "description":  "Cloudflare tunnel token. Map host to http://127.0.0.1:SERVER_PORT",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "Certbot",
+                          "env_variable":  "CERTBOT_STATUS",
+                          "description":  "Obtain TLS certificate in container.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Certbot Email",
+                          "env_variable":  "CERTBOT_EMAIL",
+                          "description":  "Let\u0027s Encrypt email.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Certbot Domain",
+                          "env_variable":  "CERTBOT_DOMAIN",
+                          "description":  "Certificate FQDN.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "",
+                          "user_viewable":  true,
+                          "name":  "Certbot Cloudflare DNS Token",
+                          "env_variable":  "CERTBOT_DNS_CLOUDFLARE_TOKEN",
+                          "description":  "Optional Cloudflare API token for DNS-01.",
+                          "user_editable":  true,
+                          "rules":  "nullable|string",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "Certbot Staging",
+                          "env_variable":  "CERTBOT_STAGING",
+                          "description":  "Use Let\u0027s Encrypt staging.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "0",
+                          "user_viewable":  true,
+                          "name":  "Cron",
+                          "env_variable":  "CRON_STATUS",
+                          "description":  "Enable cron engine (/home/container/crontab).",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      },
+                      {
+                          "default_value":  "1",
+                          "user_viewable":  true,
+                          "name":  "Log Cleaner",
+                          "env_variable":  "LOGCLEANER_STATUS",
+                          "description":  "Clean tmp/old logs on start.",
+                          "user_editable":  true,
+                          "rules":  "required|boolean",
+                          "field_type":  "text"
+                      }
+                  ]
+}
