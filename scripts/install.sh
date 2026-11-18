@@ -4,17 +4,22 @@ set -euo pipefail
 cd /mnt/server || exit 1
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq >/dev/null 2>&1
-apt-get install -y -qq git curl ca-certificates unzip xz-utils wget >/dev/null 2>&1 \
+
+echo "[SETUP] Updating packages (this can take 1-3 minutes)..."
+apt-get update -qq || { echo "[ERROR] apt-get update failed"; exit 1; }
+
+echo "[SETUP] Installing git curl unzip..."
+apt-get install -y -qq git curl ca-certificates unzip xz-utils wget \
   || { echo "[ERROR] Failed to install packages"; exit 1; }
 
-REPO_URL="${EGG_REPO_URL:-https://github.com/Vahistar/BiteHost-WebHost}"
+REPO_URL="${EGG_REPO_URL:-https://github.com/Vahistar/inBite-webHOST}"
 BRANCH_REF="${EGG_REPO_BRANCH:-main}"
 
 echo "[SETUP] Cloning ${REPO_URL} (${BRANCH_REF})..."
+echo "[SETUP] Repo must be PUBLIC (or set a reachable EGG_REPO_URL)."
 rm -rf /mnt/server/gtemp
 git clone --depth 1 --branch "${BRANCH_REF}" "${REPO_URL}" /mnt/server/gtemp \
-  || { echo "[ERROR] Failed to clone egg repository"; exit 1; }
+  || { echo "[ERROR] Failed to clone egg repository: ${REPO_URL}"; echo "[ERROR] Check repo name, visibility (public), and branch (${BRANCH_REF})."; exit 1; }
 
 cp -a /mnt/server/gtemp/nginx /mnt/server/
 cp -a /mnt/server/gtemp/php /mnt/server/

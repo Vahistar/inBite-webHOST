@@ -2,7 +2,7 @@ FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.title="BiteHost WebHost" \
       org.opencontainers.image.description="Nginx + PHP-FPM for Pterodactyl/Pelican" \
-      org.opencontainers.image.source="https://github.com/Vahistar/BiteHost-WebHost" \
+      org.opencontainers.image.source="https://github.com/Vahistar/inBite-webHOST" \
       org.opencontainers.image.licenses="MIT"
 
 ARG PHP_VERSION=8.4
